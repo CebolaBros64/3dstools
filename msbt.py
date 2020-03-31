@@ -129,7 +129,7 @@ class Msbt:
 
         msbt_header = struct.pack(MSBT_HEADER_STRUCT, MSBT_MAGIC, bom, self.header_unknowns[0], self.encoding,
                                   self.header_unknowns[1], self.section_count, self.header_unknowns[2],
-                                  0, str(self.header_unknowns[3]))
+                                  0, self.header_unknowns[3].encode('utf-8'))
         output.write(msbt_header)
 
         for section in self.section_order:
@@ -186,7 +186,7 @@ class Msbt:
 
         output['structure']['LBL1']['lists'] = self.sections['LBL1']['data']
 
-        json.dump(output, open(filename, 'w'), indent=2, sort_keys=True, ensure_ascii=False)
+        json.dump(output, open(filename, 'w'), indent=2, sort_keys=True, ensure_ascii=True)
 
     def from_json(self, filename):
         json_data = json.load(open(filename, 'r'))
@@ -441,7 +441,7 @@ class Msbt:
         entries = self.sections['LBL1']['header']['entries']
 
         header_bytes = struct.pack(LBL1_HEADER_STRUCT % self.order, LBL1_MAGIC, 0,
-                                   str(self.sections['LBL1']['header']['unknown']), entries)
+                                   self.sections['LBL1']['header']['unknown'].encode('utf-8'), entries)
         section1_bytes = ''
         section2_bytes = ''
 
@@ -454,7 +454,7 @@ class Msbt:
             offset = len(section2_bytes)
             for label in label_list[0]:
                 length = len(label[1])
-                section2_bytes += struct.pack('%sB%dsI' % (self.order, length), length, str(label[1]), label[0])
+                section2_bytes += struct.pack('%sB%dsI' % (self.order, length), length, label[1].encode('utf-8'), label[0])
             section1_bytes += struct.pack('%s2I' % self.order, count, section2_offset + offset)
 
         size = len(section1_bytes) + len(section2_bytes) + 4
